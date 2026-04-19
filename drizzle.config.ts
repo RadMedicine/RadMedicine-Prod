@@ -2,9 +2,13 @@ import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
 
 // `drizzle-kit generate` only needs the schema files; the URL is only
-// consumed by `migrate` / `push` / `studio`. Fall back to a placeholder
-// so generate doesn't require a live DB.
-const url = process.env.DATABASE_URL ?? "postgresql://placeholder@localhost/placeholder";
+// consumed by `migrate` / `push` / `studio`. Prefer DIRECT_URL
+// (direct :5432) when set; fall back to DATABASE_URL; fall back to a
+// placeholder so generate doesn't require a live DB.
+const url =
+  process.env.DIRECT_URL ??
+  process.env.DATABASE_URL ??
+  "postgresql://placeholder@localhost/placeholder";
 
 export default defineConfig({
   dialect: "postgresql",
