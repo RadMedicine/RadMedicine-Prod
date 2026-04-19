@@ -3,6 +3,7 @@
 import { useEffect, useReducer, useState, useTransition } from "react";
 import { createSubscriptionAction, submitIntakeAction } from "./actions";
 import { submitWaitlistAction } from "../waitlist/actions";
+import { track } from "@/src/lib/analytics/events";
 import type { IntakeInput, MatchedDoctor, NeedKey } from "@/src/lib/matching/service";
 
 /**
@@ -169,7 +170,10 @@ export function OnboardingClient({ preselectedDoctorSlug }: { preselectedDoctorS
       setError("ZIP and age range are required.");
       return;
     }
-    if (!isLikelyCoZip(state.zip)) {
+    const isCo = isLikelyCoZip(state.zip);
+    track("onboarding_step_2_submit", { branch: isCo ? "co" : "waitlist" });
+    if (!isCo) {
+      track("onboarding_waitlist_entered", { zip: state.zip });
       dispatch({ type: "setBranch", branch: "waitlist" });
       return;
     }
@@ -182,6 +186,7 @@ export function OnboardingClient({ preselectedDoctorSlug }: { preselectedDoctorS
       setError("Pick how you'd pair DPC with insurance (or not).");
       return;
     }
+    track("onboarding_step_4_submit", { posture: state.insurancePosture, needs_count: state.needs.length });
     startTransition(async () => {
       try {
         const result = await submitIntakeAction({
@@ -212,6 +217,7 @@ export function OnboardingClient({ preselectedDoctorSlug }: { preselectedDoctorS
           email,
           plan: "adult",
         });
+        track("onboarding_subscription_created", { doctor_slug: state.selectedDoctorSlug });
         try {
           localStorage.removeItem(ONBOARDING_LS_KEY);
         } catch {
@@ -278,7 +284,15 @@ export function OnboardingClient({ preselectedDoctorSlug }: { preselectedDoctorS
             />
           )}
           {state.step === 3 && (
-            <Step3Needs state={state} dispatch={dispatch} onSubmit={() => dispatch({ type: "next" })} onBack={() => dispatch({ type: "back" })} />
+            <Step3Needs
+              state={state}
+              dispatch={dispatch}
+              onSubmit={() => {
+                track("onboarding_step_3_submit", { needs_count: state.needs.length });
+                dispatch({ type: "next" });
+              }}
+              onBack={() => dispatch({ type: "back" })}
+            />
           )}
           {state.step === 4 && (
             <Step4Insurance
@@ -324,6 +338,9 @@ function ProgressBar({ pct, label }: { pct: number; label: string }) {
 }
 
 function Step1Welcome({ onNext }: { onNext: () => void }) {
+  useEffect(() => {
+    track("onboarding_start");
+  }, []);
   return (
     <div>
       <h1 className="t-h1" style={{ margin: 0 }}>
@@ -586,7 +603,10 @@ function Step5Matches({
               <button
                 key={m.doctorSlug}
                 type="button"
-                onClick={() => dispatch({ type: "selectDoctor", slug: m.doctorSlug })}
+                onClick={() => {
+                  track("onboarding_match_selected", { doctor_slug: m.doctorSlug, match_score: m.matchScore });
+                  dispatch({ type: "selectDoctor", slug: m.doctorSlug });
+                }}
                 className="card"
                 style={{
                   textAlign: "left",

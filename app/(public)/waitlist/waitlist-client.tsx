@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { submitWaitlistAction } from "./actions";
+import { track } from "@/src/lib/analytics/events";
 
 export function WaitlistClient({ initialZip, initialEmail }: { initialZip: string; initialEmail: string }) {
   const [email, setEmail] = useState(initialEmail);
@@ -16,6 +17,7 @@ export function WaitlistClient({ initialZip, initialEmail }: { initialZip: strin
     startTransition(async () => {
       try {
         await submitWaitlistAction({ email, zip, source: "waitlist_direct" });
+        track("waitlist_direct_submitted", { zip: zip || undefined });
         setDone(true);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong.");

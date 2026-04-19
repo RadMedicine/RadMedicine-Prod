@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Young_Serif, DM_Sans, Source_Serif_4, JetBrains_Mono } from "next/font/google";
+import { PlausibleScript } from "@/src/components/analytics/Plausible";
 import "./globals.css";
 
 /**
@@ -61,6 +62,7 @@ export default function RootLayout({
       className={`${youngSerif.variable} ${dmSans.variable} ${sourceSerifItalic.variable} ${jetbrainsMono.variable}`}
     >
       <body>{children}</body>
+      <PlausibleScript />
     </html>
   );
 }
