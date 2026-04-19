@@ -403,6 +403,28 @@ async function main() {
     ])
     .onConflictDoNothing();
 
+  console.log("Seeding admin user + clinic_users (Jon owns all 10 Beta clinics for QA) ...");
+  // Jon's admin user, pre-seeded so his first magic-link sign-in picks
+  // up the existing row instead of creating a new one. clinic_users
+  // rows link him to every clinic so he can QA /clinic/dashboard
+  // against any of them.
+  const jonEmail = "jon@radmedicine.io";
+  await db
+    .insert(core.users)
+    .values({ email: jonEmail, name: "Jon Tallman" })
+    .onConflictDoNothing({ target: core.users.email });
+
+  const [jonUser] = await db.select({ id: core.users.id }).from(core.users).where(eq(core.users.email, jonEmail));
+  if (!jonUser) throw new Error("failed to insert/read Jon's seeded user");
+
+  const allClinics = await db.select({ id: core.clinics.id }).from(core.clinics);
+  for (const c of allClinics) {
+    await db
+      .insert(core.clinicUsers)
+      .values({ userId: jonUser.id, clinicId: c.id, role: "owner" })
+      .onConflictDoNothing();
+  }
+
   console.log("Done.");
   await sql.end();
 }
