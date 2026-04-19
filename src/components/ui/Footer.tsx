@@ -49,7 +49,7 @@ const SECTIONS: Section[] = [
 
 export function Footer() {
   return (
-    <footer className="footer">
+    <footer className="footer" data-testid="footer">
       <div className="wrap">
         <div className="footer-grid">
           <div>

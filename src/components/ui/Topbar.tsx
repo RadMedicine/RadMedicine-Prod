@@ -44,7 +44,7 @@ export function Topbar({ mode: modeProp }: { mode?: Mode } = {}) {
   const ctaLabel = mode === "clinic" ? "Join as a clinic" : "Find a doctor";
 
   return (
-    <header className="topbar">
+    <header className="topbar" data-testid="topbar">
       <div className="topbar-inner">
         <Link href="/" aria-label="RadMedicine home">
           <Logo variant="mark" size={26} />
