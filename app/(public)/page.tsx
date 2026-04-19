@@ -21,17 +21,21 @@ export const dynamic = "force-dynamic";
  * with empty cards and zero counts.
  */
 export default async function HomePage() {
+  // Graceful fallbacks: if any DB query fails (unreachable Supabase,
+  // wrong DATABASE_URL, whatever) the hero still renders. This is
+  // useful for visual regression and for surviving transient DB
+  // outages in production without 500-ing the marketing surface.
   const [specialties, featured, clinicCount, avgPriceCents] = await Promise.all([
-    getSpecialtiesWithCounts(),
-    getFeaturedDoctors(3),
-    getVisibleClinicCount(),
-    getAverageAdultPrice(),
+    safe(getSpecialtiesWithCounts, [] as SpecialtyRow[]),
+    safe(() => getFeaturedDoctors(3), [] as FeaturedRow[]),
+    safe(getVisibleClinicCount, 0),
+    safe(getAverageAdultPrice, null as number | null),
   ]);
 
   return (
     <>
       {/* HERO */}
-      <section style={{ position: "relative", padding: "var(--s-8) 0 var(--s-6)", overflow: "hidden" }}>
+      <section data-testid="hero" style={{ position: "relative", padding: "var(--s-8) 0 var(--s-6)", overflow: "hidden" }}>
         <div
           aria-hidden
           style={{
@@ -426,7 +430,20 @@ export default async function HomePage() {
 
 // ------- data helpers (server-only) ----------------------------------------
 
-async function getSpecialtiesWithCounts() {
+async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[home] data fetch failed, falling back:", err instanceof Error ? err.message : err);
+    return fallback;
+  }
+}
+
+type SpecialtyRow = { slug: string; name: string; doctorCount: number };
+type FeaturedRow = Awaited<ReturnType<typeof getFeaturedDoctors>>[number];
+
+async function getSpecialtiesWithCounts(): Promise<SpecialtyRow[]> {
   const rows = await coreDb
     .select({
       slug: core.specialties.slug,
