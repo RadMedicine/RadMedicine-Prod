@@ -41,11 +41,15 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   const stream = input.messageStream ?? process.env.POSTMARK_MESSAGE_STREAM ?? "outbound";
 
   if (!apiKey) {
-    // Stub path — no dispatch. Log enough to debug in dev; don't dump HTML.
+    // Stub path — no dispatch. Log metadata, then the full text body
+    // so the dev can grab magic-link URLs, waitlist confirmations,
+    // etc. straight out of the terminal.
     // eslint-disable-next-line no-console
     console.info(
       `[email STUB] to=${input.to} subject="${input.subject}" tag=${input.tag ?? "-"} stream=${stream} (POSTMARK_API_KEY missing — not dispatched)`,
     );
+    // eslint-disable-next-line no-console
+    console.info(`[email STUB] --- text body ---\n${input.textBody}\n[email STUB] --- end ---`);
     return { ok: true, id: `stub-${Date.now()}`, dispatched: false };
   }
 
