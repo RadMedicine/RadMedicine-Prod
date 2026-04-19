@@ -37,15 +37,16 @@
   --good: #5a8a6e;
 
   /* Type — Young Serif display + DM Sans body.
-   * The --display-italic fallback to Source Serif 4 is LOAD-BEARING:
-   * Young Serif has no italic, so <em> inside .t-display / .t-h1 / .t-h2
-   * falls through to Source Serif 4 italic and gets colored --accent.
+   * LOAD-BEARING: .t-display em / .t-h1 em / .t-h2 em override font-family
+   * to --display-italic (Source Serif 4 italic) to produce the terracotta
+   * editorial italics. Young Serif has no italic face, and Source Serif 4
+   * is only loaded in italic-400 — keep both wired up in app/layout.tsx.
    * Do not change without a visual regression check on the hero. */
-  --sans: 'DM Sans', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --display: 'Young Serif', 'Source Serif 4', Georgia, serif;
-  --serif: 'Young Serif', 'Source Serif 4', Georgia, serif;
-  --display-italic: 'Source Serif 4', Georgia, serif;
-  --mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+  --sans: var(--font-dm-sans), 'DM Sans', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --display: var(--font-young-serif), 'Young Serif', var(--font-source-serif-italic), 'Source Serif 4', Georgia, serif;
+  --serif: var(--font-young-serif), 'Young Serif', var(--font-source-serif-italic), 'Source Serif 4', Georgia, serif;
+  --display-italic: var(--font-source-serif-italic), 'Source Serif 4', Georgia, serif;
+  --mono: var(--font-jetbrains-mono), 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
   --display-weight: 400;
   --display-tracking: -0.015em;
 

@@ -1,101 +1,58 @@
-import Image from "next/image";
-
+/**
+ * Temporary type specimen — exercises every design-token font face and
+ * verifies the .t-display em → Source Serif 4 italic → terracotta treatment
+ * renders correctly. Will be replaced by the real Patient Landing hero in
+ * a later task.
+ */
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <main className="wrap" style={{ paddingTop: "var(--s-9)", paddingBottom: "var(--s-10)" }}>
+      <p className="t-eyebrow">Type specimen · tokens.css</p>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      <h1 className="t-display" style={{ marginTop: "var(--s-5)", maxWidth: 900 }}>
+        The doctor who knows <em>you</em>, not your insurance.
+      </h1>
+
+      <p className="t-body-lg" style={{ marginTop: "var(--s-6)", maxWidth: 640 }}>
+        Young Serif sets the headline. Young Serif has no italic face, so{" "}
+        <span className="t-mono">&lt;em&gt;</span> falls back to Source Serif 4 italic —
+        colored terracotta by tokens.css. DM Sans handles body and UI copy. JetBrains Mono
+        handles eyebrows and data.
+      </p>
+
+      <div className="row" style={{ gap: "var(--s-3)", marginTop: "var(--s-6)", flexWrap: "wrap" }}>
+        <a className="btn btn-primary">Find a doctor</a>
+        <a className="btn btn-accent">For clinics</a>
+        <a className="btn btn-ghost">Learn more</a>
+      </div>
+
+      <h2 className="t-h2" style={{ marginTop: "var(--s-9)" }}>
+        Healthcare, delivered <em>directly</em>.
+      </h2>
+
+      <div className="row" style={{ gap: "var(--s-5)", marginTop: "var(--s-6)", flexWrap: "wrap" }}>
+        <article className="card" style={{ maxWidth: 320 }}>
+          <p className="t-eyebrow">Step 01</p>
+          <h3 className="t-h3" style={{ marginTop: "var(--s-3)" }}>Tell us what you need</h3>
+          <p className="t-body" style={{ marginTop: "var(--s-3)" }}>
+            A few non-identifying details — ZIP, age range, what care you&apos;re after.
+          </p>
+        </article>
+        <article className="card" style={{ maxWidth: 320 }}>
+          <p className="t-eyebrow">Step 02</p>
+          <h3 className="t-h3" style={{ marginTop: "var(--s-3)" }}>Meet matched doctors</h3>
+          <p className="t-body" style={{ marginTop: "var(--s-3)" }}>
+            Real DPC physicians in your area, ranked by fit.
+          </p>
+        </article>
+        <article className="card" style={{ maxWidth: 320 }}>
+          <p className="t-eyebrow">Step 03</p>
+          <h3 className="t-h3" style={{ marginTop: "var(--s-3)" }}>Subscribe directly</h3>
+          <p className="t-body" style={{ marginTop: "var(--s-3)" }}>
+            Flat monthly fee. Insurance stays for emergencies.
+          </p>
+        </article>
+      </div>
+    </main>
   );
 }
