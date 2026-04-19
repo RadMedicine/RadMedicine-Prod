@@ -11,10 +11,22 @@ Two-sided marketplace for Direct Primary Care. This repo is the Beta web app —
 ## Run locally
 
 ```bash
+cp .env.example .env.local        # then fill in DATABASE_URL, NEXTAUTH_*, ADMIN_EMAILS
+npm run db:migrate                 # apply Drizzle migrations to Supabase
+npm run db:seed                    # placeholder data (10 CO clinics, 4 subscriptions, waitlist rows)
 npm run dev -- -p 3001
 ```
 
 Port 3000 is occupied on Jon's machine — always pass an explicit port.
+
+### Database workflow
+
+- `db:generate` — regenerate a migration from schema changes under `src/lib/db/schema/*.ts`. Commit the new SQL in `db/migrations/`.
+- `db:migrate` — apply pending migrations to `DATABASE_URL`.
+- `db:seed` — insert idempotent placeholder data (safe to re-run).
+- `db:studio` — drizzle-kit studio (web UI for the live DB).
+
+Postgres runs on Supabase. Connection string goes in `DATABASE_URL` (transaction-pooler URL, port 6543). Per ADR 001 the `core` / `contact` / `med` schemas are physically separated and must be accessed through distinct Drizzle clients at `src/lib/db/{core,contact,med}.ts`.
 
 Live routes:
 
