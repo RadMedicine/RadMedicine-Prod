@@ -1,6 +1,6 @@
 import "server-only";
 import { auth } from "../auth";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { db as coreDb } from "../db/core";
 import * as core from "../db/schema/core";
 import { db as contactDb } from "../db/contact";
@@ -100,7 +100,7 @@ export async function getAdminSubscriptionsWithEmail(): Promise<AdminSubscriptio
   const contactRows = await contactDb
     .select({ subscriberToken: contact.subscribers.subscriberToken, email: contact.subscribers.email })
     .from(contact.subscribers)
-    .where(sql`${contact.subscribers.subscriberToken} = ANY(${tokens}::uuid[])`);
+    .where(inArray(contact.subscribers.subscriberToken, tokens));
 
   const emailByToken = new Map(contactRows.map((r) => [r.subscriberToken, r.email]));
   await writeAdminAccessLog({ action: "read", reason: "admin_subscriptions_page" });
@@ -139,7 +139,7 @@ export async function getAdminActivations(): Promise<AdminActivationRow[]> {
   const contactRows = await contactDb
     .select({ subscriberToken: contact.subscribers.subscriberToken, email: contact.subscribers.email })
     .from(contact.subscribers)
-    .where(sql`${contact.subscribers.subscriberToken} = ANY(${tokens}::uuid[])`);
+    .where(inArray(contact.subscribers.subscriberToken, tokens));
 
   const emailByToken = new Map(contactRows.map((r) => [r.subscriberToken, r.email]));
   await writeAdminAccessLog({ action: "read", reason: "admin_activations_page" });
