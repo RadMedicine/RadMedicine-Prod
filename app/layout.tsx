@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Young_Serif, DM_Sans, Source_Serif_4, JetBrains_Mono } from "next/font/google";
-import { Topbar } from "@/src/components/ui/Topbar";
-import { Footer } from "@/src/components/ui/Footer";
 import "./globals.css";
 
 /**
@@ -62,11 +60,7 @@ export default function RootLayout({
       lang="en"
       className={`${youngSerif.variable} ${dmSans.variable} ${sourceSerifItalic.variable} ${jetbrainsMono.variable}`}
     >
-      <body>
-        <Topbar />
-        {children}
-        <Footer />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
