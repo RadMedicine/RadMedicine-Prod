@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useReducer, useState, useTransition } from "react";
-import {
-  createSubscriptionAction,
-  submitIntakeAction,
-  submitWaitlistAction,
-} from "./actions";
+import { createSubscriptionAction, submitIntakeAction } from "./actions";
+import { submitWaitlistAction } from "../waitlist/actions";
 import type { IntakeInput, MatchedDoctor, NeedKey } from "@/src/lib/matching/service";
 
 /**
@@ -231,7 +228,7 @@ export function OnboardingClient({ preselectedDoctorSlug }: { preselectedDoctorS
     setError(null);
     startTransition(async () => {
       try {
-        await submitWaitlistAction({ email, zip: state.zip });
+        await submitWaitlistAction({ email, zip: state.zip, source: "onboarding_step2" });
         try {
           localStorage.removeItem(ONBOARDING_LS_KEY);
         } catch {

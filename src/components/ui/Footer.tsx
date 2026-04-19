@@ -16,8 +16,8 @@ const SECTIONS: Section[] = [
     links: [
       { href: "/", label: "How it works" },
       { href: "/search", label: "Find a doctor" },
+      { href: "/waitlist", label: "Join the waitlist" },
       { href: "#", label: "What is DPC?" },
-      { href: "#", label: "Help center" },
     ],
   },
   {

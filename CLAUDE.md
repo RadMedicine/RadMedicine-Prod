@@ -211,10 +211,10 @@ If any other module starts importing both clients, stop and check whether it sho
 ## Local dev
 
 ```bash
-npm run dev -- -p 3001
+npm run dev:3001
 ```
 
-Port 3000 is occupied by another app on Jon's machine — always pass an explicit port flag.
+`dev:3001` is the canonical local script on Jon's machine (his port 3000 is occupied). `npm run dev` still works on a default-port machine.
 
 ## What to do if you're a fresh Claude entering this repo
 

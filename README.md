@@ -1,23 +1,23 @@
 # RadMedicine
 
-Two-sided marketplace for Direct Primary Care. This repo is the Beta web app — a Next.js 14 App Router rebuild from the Claude Design handoff at `../design-handoffs/2026-04-19_initial-handoff/`.
+Two-sided marketplace for Direct Primary Care. Next.js 14 App Router, rebuilt from the Claude Design handoff at `../design-handoffs/2026-04-19_initial-handoff/`.
 
 ## Read before touching the code
 
 1. [`CLAUDE.md`](./CLAUDE.md) — critical rules, stack, design-system discipline, file/folder conventions.
-2. [`../PROJECT_PLAN.md`](../PROJECT_PLAN.md) — scope, phasing, Beta cuts, open questions.
+2. [`../PROJECT_PLAN.md`](../PROJECT_PLAN.md) — scope, phasing, Beta cuts, open questions, Dan's legal queue.
 3. [`docs/adr/001-pii-compartmentalization.md`](./docs/adr/001-pii-compartmentalization.md) — the load-bearing privacy design.
 
 ## Run locally
 
 ```bash
-cp .env.example .env.local        # then fill in DATABASE_URL, NEXTAUTH_*, ADMIN_EMAILS
-npm run db:migrate                 # apply Drizzle migrations to Supabase
-npm run db:seed                    # placeholder data (10 CO clinics, 4 subscriptions, waitlist rows)
-npm run dev -- -p 3001
+cp .env.example .env.local   # fill DATABASE_URL, NEXTAUTH_*, ADMIN_EMAILS
+npm run db:migrate            # apply Drizzle migrations to Supabase
+npm run db:seed               # idempotent placeholder data
+npm run dev:3001              # dev server on port 3001
 ```
 
-Port 3000 is occupied on Jon's machine — always pass an explicit port.
+`npm run dev` defaults to Next's port 3000. Jon's machine has 3000 occupied; `npm run dev:3001` is the path-of-least-resistance on that host.
 
 ### Database workflow
 
@@ -28,27 +28,26 @@ Port 3000 is occupied on Jon's machine — always pass an explicit port.
 
 Postgres runs on Supabase. Connection string goes in `DATABASE_URL` (transaction-pooler URL, port 6543). Per ADR 001 the `core` / `contact` / `med` schemas are physically separated and must be accessed through distinct Drizzle clients at `src/lib/db/{core,contact,med}.ts`.
 
-Live routes:
+### Visual regression
 
-- `/` — temporary type specimen (will be replaced by the Patient Landing hi-fi port)
-- `/for-clinics` — Clinic Landing wireframe
+- `npm run test:visual` — run against committed baselines.
+- `npm run test:visual:update` — regenerate baselines after an intentional visual change.
+
+## Live routes
+
+- `/` — Patient Landing (hi-fi, data-driven)
+- `/for-clinics` — Clinic Landing (wireframe)
 - `/clinic/onboarding` — 6-step clinic onboarding (localStorage-resumable)
-- `/admin` — read-only tables + action buttons (wireframe; **not yet auth-gated**, banner flags this)
+- `/search` — clinic list with specialty + ZIP filter
+- `/doctors/[slug]` — doctor profile
+- `/onboarding` — 7-step patient flow with CO geofence at step 2
+- `/waitlist` — direct waitlist entry (non-CO)
+- `/sign-in` — magic-link
+- `/admin` — read-only tables + action buttons (gated: email in `ADMIN_EMAILS`)
+- `/clinic/dashboard/[slug]/{profile,pricing,availability}` — clinic self-serve editing (gated)
 
 ## Stack
 
-Next.js 14 (pinned 14.2.35) · TypeScript strict · Tailwind → CSS custom properties in `src/styles/tokens.css` · `next/font/google` for Young Serif, DM Sans, Source Serif 4 italic, JetBrains Mono · Postgres (provider TBD) · Drizzle (deferred) · NextAuth (deferred) · Stripe (deferred) · Postmark (deferred) · Vercel (deferred).
+Next.js 14.2.35 · TypeScript strict · Tailwind → CSS custom properties in `src/styles/tokens.css` · `next/font/google` (Young Serif, DM Sans, Source Serif 4 italic, JetBrains Mono) · Postgres on Supabase via Drizzle · NextAuth v5 (magic-link) · Postmark (transactional) · Vercel (hosting) · Stripe (deferred).
 
-## Layout
-
-```
-app/(public)/     ← marketing / patient / clinic — wrapped in Topbar + Footer
-app/admin/        ← /admin — own minimal chrome, sits outside (public)
-src/components/   ← Logo, Topbar, Footer
-src/styles/       ← tokens.css (visual source of truth)
-src/lib/admin/    ← Beta seed data; shapes mirror db/schema.sql
-db/schema.sql     ← three-schema Postgres sketch (not a migration yet)
-docs/adr/         ← Architecture Decision Records
-```
-
-See `CLAUDE.md § File / folder conventions` for the full tree.
+See [`CLAUDE.md`](./CLAUDE.md) § File / folder conventions for the full tree.

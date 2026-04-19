@@ -15,7 +15,6 @@ import {
 import {
   sendClinicNewPatientNotify,
   sendOnboardingConfirm,
-  sendWaitlistConfirm,
   sendWelcome,
 } from "@/src/lib/email/transactional";
 
@@ -30,7 +29,7 @@ import {
  * the linking token is generated here in TS.
  *
  * Non-CO ZIPs never reach submitIntakeAction — the client-side gate
- * short-circuits to submitWaitlistAction at step 2.
+ * short-circuits to the waitlist action at step 2.
  */
 
 export async function submitIntakeAction(input: IntakeInput): Promise<MatchResult> {
@@ -38,20 +37,6 @@ export async function submitIntakeAction(input: IntakeInput): Promise<MatchResul
     throw new Error("Non-Colorado ZIP — use the waitlist flow");
   }
   return submitIntakeAndMatch(input);
-}
-
-export async function submitWaitlistAction({ email, zip }: { email: string; zip: string }): Promise<{ ok: true }> {
-  if (!email) throw new Error("email required");
-  const z = (zip ?? "").trim();
-
-  // Persist (email is PII → contact schema).
-  await contactDb
-    .insert(contact.waitlistSignups)
-    .values({ email, zip: z, source: "onboarding_step2" })
-    .onConflictDoNothing({ target: contact.waitlistSignups.email });
-
-  await sendWaitlistConfirm(email, { zip: z });
-  return { ok: true };
 }
 
 /**
