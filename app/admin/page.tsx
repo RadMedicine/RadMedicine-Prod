@@ -1,43 +1,40 @@
 import {
-  SEED_ACTIVATIONS,
-  SEED_CLINICS,
-  SEED_SUBSCRIPTIONS,
   dollars,
-} from "@/src/lib/admin/seed";
+  getAdminActivations,
+  getAdminClinics,
+  getAdminKpis,
+  getAdminSubscriptionsWithEmail,
+} from "@/src/lib/admin/data";
 import { AdminActions } from "./actions";
+
+export const dynamic = "force-dynamic";
 
 /**
  * Admin overview — read-only tables + single-click action buttons, per
  * PROJECT_PLAN Workstream F.
  *
- * Current state: wireframe. Data is seeded from src/lib/admin/seed.ts
- * (the shapes match db/schema.sql). Action buttons route through
- * AdminActions (client component) and currently console.info a stub.
- *
- * What is DONE:
- *   - Route structure + nested layout (no marketing chrome on /admin)
- *   - Tables for clinics, subscriptions, activations
- *   - Action buttons in place with the right surface area per action
- *
  * Auth: gated by middleware.ts (JWT session + ADMIN_EMAILS allowlist).
- * Anyone reaching this page has already cleared that bar.
+ * Mutating server actions re-check the session server-side (defense in
+ * depth — an unverified direct POST won't punch through).
  *
- * What is NOT done yet:
- *   - No real DB reads — all rows from seed.ts.
- *   - No real action wiring — buttons log; next pass wires to the
- *     billing / email / contact services (ADR 001).
- *   - No contact.subscriber_access_log entries written. Every admin
- *     read of an email below would write an audit record in prod.
+ * Reads /admin is the deliberate cross-schema read point per ADR 001.
+ * Every resolution of subscriber_token → email writes a row to
+ * contact.subscriber_access_log tagged with the signed-in admin's
+ * email. See src/lib/admin/data.ts.
+ *
+ * Actions wired: approveClinic, toggleClinicVisibility.
+ * Stubbed (Stripe-gated): resendWelcomeEmail, issueRefund, cancelSubscription.
  */
 
-export default function AdminOverviewPage() {
-  const totalPanel = SEED_CLINICS.reduce((n, c) => n + c.panelCurrent, 0);
-  const pendingClinics = SEED_CLINICS.filter((c) => c.status === "pending").length;
-  const activeSubs = SEED_SUBSCRIPTIONS.filter((s) => s.status === "active").length;
-  const mrrCents = SEED_SUBSCRIPTIONS.filter((s) => s.status === "active" || s.status === "trialing").reduce(
-    (n, s) => n + s.priceCents,
-    0,
-  );
+export default async function AdminOverviewPage() {
+  const [kpis, clinics, subscriptions, activations] = await Promise.all([
+    getAdminKpis(),
+    getAdminClinics(),
+    getAdminSubscriptionsWithEmail(),
+    getAdminActivations(),
+  ]);
+
+  const totalPanel = clinics.reduce((n, c) => n + c.panelCurrent, 0);
 
   return (
     <main className="wrap" style={{ padding: "var(--s-6) 0 var(--s-9)" }}>
@@ -45,7 +42,6 @@ export default function AdminOverviewPage() {
         Overview
       </h1>
 
-      {/* KPI strip */}
       <section
         style={{
           marginTop: "var(--s-5)",
@@ -55,10 +51,10 @@ export default function AdminOverviewPage() {
         }}
       >
         {[
-          { k: "Clinics live", v: SEED_CLINICS.filter((c) => c.status === "approved" && c.visible).length },
-          { k: "Awaiting approval", v: pendingClinics },
-          { k: "Active subscriptions", v: activeSubs },
-          { k: "MRR", v: dollars(mrrCents) },
+          { k: "Clinics live", v: kpis.clinicsLive },
+          { k: "Awaiting approval", v: kpis.clinicsPending },
+          { k: "Active subscriptions", v: kpis.subsActive },
+          { k: "MRR", v: dollars(kpis.mrrCents) },
         ].map(({ k, v }) => (
           <div key={k} className="card" style={{ padding: "var(--s-4)" }}>
             <p className="t-mono" style={{ color: "var(--ink-4)", marginBottom: 6 }}>
@@ -80,13 +76,13 @@ export default function AdminOverviewPage() {
             Clinics
           </h2>
           <span className="t-mono" style={{ color: "var(--ink-4)" }}>
-            {SEED_CLINICS.length} total
+            {clinics.length} total
           </span>
         </div>
         <div className="card" style={{ marginTop: "var(--s-3)", padding: 0, overflow: "hidden" }}>
           <AdminTable
             columns={["Clinic", "Location", "Status", "Visibility", "Panel", "Actions"]}
-            rows={SEED_CLINICS.map((c) => [
+            rows={clinics.map((c) => [
               <strong key={`${c.id}-name`}>{c.name}</strong>,
               `${c.city}, ${c.region}`,
               <StatusPill key={`${c.id}-status`} status={c.status} />,
@@ -96,7 +92,13 @@ export default function AdminOverviewPage() {
                 key={`${c.id}-actions`}
                 actions={[
                   c.status === "pending" && { label: "Approve", kind: "approveClinic", id: c.id, tone: "primary" },
-                  { label: c.visible ? "Hide" : "Show", kind: "toggleClinicVisibility", id: c.id, tone: "ghost" },
+                  {
+                    label: c.visible ? "Hide" : "Show",
+                    kind: "toggleClinicVisibility",
+                    id: c.id,
+                    tone: "ghost",
+                    nextVisible: !c.visible,
+                  },
                 ]}
               />,
             ])}
@@ -111,13 +113,13 @@ export default function AdminOverviewPage() {
             Subscriptions
           </h2>
           <span className="t-mono" style={{ color: "var(--ink-4)" }}>
-            {SEED_SUBSCRIPTIONS.length} total
+            {subscriptions.length} total
           </span>
         </div>
         <div className="card" style={{ marginTop: "var(--s-3)", padding: 0, overflow: "hidden" }}>
           <AdminTable
             columns={["Subscriber", "Doctor", "Plan", "Status", "Price", "Started", "Actions"]}
-            rows={SEED_SUBSCRIPTIONS.map((s) => [
+            rows={subscriptions.map((s) => [
               <span key={`${s.id}-email`} style={{ fontFamily: "var(--mono)", fontSize: 12 }}>
                 {s.subscriberEmail}
               </span>,
@@ -146,13 +148,13 @@ export default function AdminOverviewPage() {
             Recent activations
           </h2>
           <span className="t-mono" style={{ color: "var(--ink-4)" }}>
-            {SEED_ACTIVATIONS.length} total
+            {activations.length} total
           </span>
         </div>
         <div className="card" style={{ marginTop: "var(--s-3)", padding: 0, overflow: "hidden" }}>
           <AdminTable
             columns={["Subscriber", "Doctor", "Fee", "Settled", "Created"]}
-            rows={SEED_ACTIVATIONS.map((a) => [
+            rows={activations.map((a) => [
               <span key={`act-${a.id}-email`} style={{ fontFamily: "var(--mono)", fontSize: 12 }}>
                 {a.subscriberEmail}
               </span>,
