@@ -29,8 +29,15 @@ const CLINIC_LINKS: NavItem[] = [
   { href: "/", label: "For patients \u2192" },
 ];
 
-export function Topbar({ mode = "patient" }: { mode?: Mode }) {
+function inferMode(pathname: string | null): Mode {
+  if (!pathname) return "patient";
+  if (pathname === "/for-clinics" || pathname.startsWith("/clinic")) return "clinic";
+  return "patient";
+}
+
+export function Topbar({ mode: modeProp }: { mode?: Mode } = {}) {
   const pathname = usePathname();
+  const mode = modeProp ?? inferMode(pathname);
   const links = mode === "clinic" ? CLINIC_LINKS : PATIENT_LINKS;
 
   const ctaHref = mode === "clinic" ? "/clinic/onboarding" : "/search";
