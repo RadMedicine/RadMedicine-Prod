@@ -1,5 +1,9 @@
-import "dotenv/config";
+import { config } from "dotenv";
 import { drizzle } from "drizzle-orm/postgres-js";
+
+// Load .env.local first (matches Next.js convention), then .env.
+config({ path: ".env.local" });
+config();
 import postgres from "postgres";
 import { randomUUID } from "node:crypto";
 

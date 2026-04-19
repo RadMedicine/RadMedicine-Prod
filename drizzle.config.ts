@@ -1,5 +1,9 @@
-import "dotenv/config";
+import { config } from "dotenv";
 import { defineConfig } from "drizzle-kit";
+
+// Match Next.js behavior: .env.local wins, .env as fallback.
+config({ path: ".env.local" });
+config();
 
 // `drizzle-kit generate` only needs the schema files; the URL is only
 // consumed by `migrate` / `push` / `studio`. Prefer DIRECT_URL

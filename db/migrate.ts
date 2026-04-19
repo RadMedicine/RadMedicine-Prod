@@ -1,5 +1,11 @@
-import "dotenv/config";
+import { config } from "dotenv";
 import { drizzle } from "drizzle-orm/postgres-js";
+
+// Next.js auto-loads .env.local for its own processes, but `tsx`
+// (drizzle-kit and our seed/migrate scripts) doesn't — so load
+// .env.local explicitly, then .env as a fallback.
+config({ path: ".env.local" });
+config();
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 
