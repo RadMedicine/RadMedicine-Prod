@@ -6,8 +6,10 @@ import * as core from "@/src/lib/db/schema/core";
 type SearchParams = Promise<{ specialty?: string; zip?: string }>;
 
 export const metadata = {
-  title: "Find a Colorado DPC clinic \u00B7 RadMedicine",
-  description: "Direct primary care clinics in Colorado. Transparent monthly pricing, listed availability, real doctors.",
+  title: "Find a Colorado DPC clinic",
+  description:
+    "Colorado's directory of direct primary care clinics. Find a doctor who returns your calls, sees you the same week, and remembers your name.",
+  alternates: { canonical: "/search" },
 };
 
 /**

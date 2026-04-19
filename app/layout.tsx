@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Young_Serif, DM_Sans, Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import { PlausibleScript } from "@/src/components/analytics/Plausible";
+import { siteUrl } from "@/src/lib/seo";
 import "./globals.css";
 
 /**
@@ -46,9 +47,21 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RadMedicine — Healthcare, delivered directly",
+  metadataBase: new URL(siteUrl()),
+  title: {
+    default: "RadMedicine \u2014 A real doctor, delivered directly.",
+    template: "%s \u00B7 RadMedicine",
+  },
   description:
-    "A marketplace for Direct Primary Care. Flat monthly fee, real doctors, insurance stays for emergencies.",
+    "Colorado's marketplace for direct primary care. Find a clinic, meet your doctor, skip the runaround.",
+  openGraph: {
+    type: "website",
+    siteName: "RadMedicine",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({

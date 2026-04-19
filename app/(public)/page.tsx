@@ -1,9 +1,14 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { and, count, desc, eq, isNotNull } from "drizzle-orm";
 import { db as coreDb } from "@/src/lib/db/core";
 import * as core from "@/src/lib/db/schema/core";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 /**
  * Patient Landing — hi-fi port of the handoff's page-patient-landing.jsx.

@@ -12,9 +12,10 @@ import type { Metadata } from "next";
  */
 
 export const metadata: Metadata = {
-  title: "For clinics — RadMedicine",
+  title: "For clinics",
   description:
-    "Patient Acquisition as a Service for Direct Primary Care clinics. No upfront cost. We only get paid when your panel grows.",
+    "Patient Acquisition as a Service for Colorado Direct Primary Care clinics. No upfront cost. Predictable panel growth.",
+  alternates: { canonical: "/for-clinics" },
 };
 
 const VS_ROWS: [string, string][] = [

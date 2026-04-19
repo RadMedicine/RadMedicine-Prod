@@ -12,10 +12,15 @@ const DOW_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
   const doctor = await getDoctorBundle(slug);
-  if (!doctor) return { title: "Doctor not found \u00B7 RadMedicine" };
+  if (!doctor) return { title: "Doctor not found" };
+  const description =
+    doctor.doctor.philosophy ||
+    doctor.clinic.tagline ||
+    `Direct primary care with ${doctor.doctor.displayName} in ${doctor.clinic.city}, ${doctor.clinic.region}. Transparent pricing, long visits, direct access.`;
   return {
-    title: `${doctor.doctor.displayName} \u00B7 ${doctor.specialty?.name ?? "DPC"} in ${doctor.clinic.city}, ${doctor.clinic.region} \u00B7 RadMedicine`,
-    description: doctor.doctor.philosophy ?? doctor.clinic.tagline ?? undefined,
+    title: `${doctor.doctor.displayName} \u00B7 ${doctor.specialty?.name ?? "DPC"} in ${doctor.clinic.city}, ${doctor.clinic.region}`,
+    description,
+    alternates: { canonical: `/doctors/${slug}` },
   };
 }
 

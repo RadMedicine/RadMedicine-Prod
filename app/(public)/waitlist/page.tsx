@@ -4,9 +4,10 @@ import { WaitlistClient } from "./waitlist-client";
 type SearchParams = Promise<{ zip?: string; email?: string }>;
 
 export const metadata: Metadata = {
-  title: "Join the waitlist \u00B7 RadMedicine",
+  title: "Join the waitlist",
   description:
     "RadMedicine launched in Colorado first. Leave your email and we'll tell you the moment we open in your state.",
+  alternates: { canonical: "/waitlist" },
 };
 
 /**
