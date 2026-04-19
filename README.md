@@ -48,6 +48,6 @@ Postgres runs on Supabase. Connection string goes in `DATABASE_URL` (transaction
 
 ## Stack
 
-Next.js 14.2.35 · TypeScript strict · Tailwind → CSS custom properties in `src/styles/tokens.css` · `next/font/google` (Young Serif, DM Sans, Source Serif 4 italic, JetBrains Mono) · Postgres on Supabase via Drizzle · NextAuth v5 (magic-link) · Postmark (transactional) · Vercel (hosting) · Stripe (deferred).
+Next.js 14.2.35 · TypeScript strict · Tailwind → CSS custom properties in `src/styles/tokens.css` · `next/font/google` (Young Serif, DM Sans, Source Serif 4 italic, JetBrains Mono) · Postgres on Supabase via Drizzle · NextAuth v5 (magic-link) · Postmark (transactional) · Fly.io (hosting) · Stripe (deferred).
 
 See [`CLAUDE.md`](./CLAUDE.md) § File / folder conventions for the full tree.

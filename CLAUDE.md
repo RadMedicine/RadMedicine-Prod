@@ -37,7 +37,7 @@ RadMedicine is a two-sided marketplace connecting patients with Direct Primary C
 - **Auth:** NextAuth (patient/clinic role discriminator + email-allowlist for `/admin`)
 - **Payments:** Stripe — Checkout + Customer Portal (RM-billed path only at Beta launch)
 - **Email:** Postmark (transactional)
-- **Hosting:** Vercel
+- **Hosting:** Fly.io (same pattern as Jon's other projects — Eidrion, jon-tallman-site). Node runtime, Supabase Postgres stays external. Next.js build uses `output: "standalone"` and a Dockerfile (to be added when we first deploy). **Runtime implication:** middleware + `/opengraph-image` need `export const runtime = "nodejs"` before deploy — they're currently edge-targeted. No change to Vercel-style env conventions beyond what `.env.example` already documents.
 - **Testing:** Vitest for units, Playwright for E2E + visual regression on hi-fi pages
 
 ---
