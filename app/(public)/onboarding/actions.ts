@@ -12,7 +12,12 @@ import {
   type IntakeInput,
   type MatchResult,
 } from "@/src/lib/matching/service";
-import { sendEmail } from "@/src/lib/email/postmark";
+import {
+  sendClinicNewPatientNotify,
+  sendOnboardingConfirm,
+  sendWaitlistConfirm,
+  sendWelcome,
+} from "@/src/lib/email/transactional";
 
 /**
  * Server actions for the patient onboarding flow.
@@ -45,19 +50,7 @@ export async function submitWaitlistAction({ email, zip }: { email: string; zip:
     .values({ email, zip: z, source: "onboarding_step2" })
     .onConflictDoNothing({ target: contact.waitlistSignups.email });
 
-  // Stubbed confirmation email — Postmark dispatch happens when the key
-  // is set. Templates.ts grows out a full set of transactional
-  // templates in W3.5; for now, the waitlist copy lives inline.
-  await sendEmail({
-    to: email,
-    subject: "You're on the RadMedicine waitlist",
-    htmlBody: `<p>Thanks for joining the waitlist. RadMedicine launched in Colorado first. When we open to ${z || "your ZIP"}, you'll be one of the first to know.</p>`,
-    textBody:
-      `Thanks for joining the waitlist. RadMedicine launched in Colorado first. ` +
-      `When we open to ${z || "your ZIP"}, you'll be one of the first to know.`,
-    tag: "waitlist-confirm",
-  });
-
+  await sendWaitlistConfirm(email, { zip: z });
   return { ok: true };
 }
 
@@ -82,17 +75,24 @@ export async function createSubscriptionAction({
   email: string;
   plan?: string;
 }): Promise<{ ok: true; subscriberToken: string }> {
-  const [doctor] = await coreDb
-    .select({ id: core.doctors.id, displayName: core.doctors.displayName })
+  const [row] = await coreDb
+    .select({
+      doctorId: core.doctors.id,
+      doctorName: core.doctors.displayName,
+      clinicId: core.clinics.id,
+      clinicName: core.clinics.name,
+      city: core.clinics.city,
+    })
     .from(core.doctors)
+    .innerJoin(core.clinics, eq(core.clinics.id, core.doctors.clinicId))
     .where(eq(core.doctors.slug, doctorSlug))
     .limit(1);
-  if (!doctor) throw new Error(`doctor not found: ${doctorSlug}`);
+  if (!row) throw new Error(`doctor not found: ${doctorSlug}`);
 
   const subscriberToken = randomUUID();
 
   await coreDb.insert(core.subscriptions).values({
-    doctorId: doctor.id,
+    doctorId: row.doctorId,
     subscriberToken,
     plan,
     status: "trialing",
@@ -103,14 +103,56 @@ export async function createSubscriptionAction({
     email,
   });
 
-  // Welcome email stub (full templates in W3.5).
-  await sendEmail({
-    to: email,
-    subject: `Welcome to RadMedicine — your membership with ${doctor.displayName}`,
-    htmlBody: `<p>You're subscribed. ${doctor.displayName} will reach out within 24 hours to schedule your first visit.</p>`,
-    textBody: `You're subscribed. ${doctor.displayName} will reach out within 24 hours to schedule your first visit.`,
-    tag: "welcome",
+  // Onboarding confirmation (to the patient) + welcome (also to the
+  // patient) + clinic notification (to the clinic owner, if we have one
+  // via core.clinic_users). Best-effort: failures are logged but don't
+  // roll back the subscription.
+  const ack = sendOnboardingConfirm(email, {
+    doctorName: row.doctorName,
+    clinicName: row.clinicName,
+    city: row.city,
   });
+  const welcome = sendWelcome(email, {
+    doctorName: row.doctorName,
+    clinicName: row.clinicName,
+    city: row.city,
+  });
+  const notifyOwner = notifyClinicOfNewPatient({
+    clinicId: row.clinicId,
+    clinicName: row.clinicName,
+    doctorName: row.doctorName,
+    patientEmail: email,
+  });
+  await Promise.all([ack, welcome, notifyOwner]);
 
   return { ok: true, subscriberToken };
+}
+
+async function notifyClinicOfNewPatient({
+  clinicId,
+  clinicName,
+  doctorName,
+  patientEmail,
+}: {
+  clinicId: string;
+  clinicName: string;
+  doctorName: string;
+  patientEmail: string;
+}) {
+  const owners = await coreDb
+    .select({ email: core.users.email })
+    .from(core.clinicUsers)
+    .innerJoin(core.users, eq(core.users.id, core.clinicUsers.userId))
+    .where(eq(core.clinicUsers.clinicId, clinicId));
+
+  if (owners.length === 0) return;
+  await Promise.all(
+    owners.map((o) =>
+      sendClinicNewPatientNotify(o.email, {
+        patientEmail,
+        clinicName,
+        doctorName,
+      }),
+    ),
+  );
 }
