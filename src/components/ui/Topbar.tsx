@@ -68,7 +68,7 @@ export function Topbar({ mode: modeProp }: { mode?: Mode } = {}) {
           })}
         </nav>
         <div style={{ display: "flex", gap: 8 }}>
-          <Link href="/admin" className="btn btn-ghost btn-sm">
+          <Link href="/sign-in" className="btn btn-ghost btn-sm">
             Sign in
           </Link>
           <Link href={ctaHref} className="btn btn-primary btn-sm">

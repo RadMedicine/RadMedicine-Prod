@@ -19,8 +19,10 @@ import { AdminActions } from "./actions";
  *   - Tables for clinics, subscriptions, activations
  *   - Action buttons in place with the right surface area per action
  *
- * What is NOT done (flagged in the banner):
- *   - No auth gate. NextAuth + email allowlist lands in Week 2.
+ * Auth: gated by middleware.ts (JWT session + ADMIN_EMAILS allowlist).
+ * Anyone reaching this page has already cleared that bar.
+ *
+ * What is NOT done yet:
  *   - No real DB reads — all rows from seed.ts.
  *   - No real action wiring — buttons log; next pass wires to the
  *     billing / email / contact services (ADR 001).
@@ -39,29 +41,7 @@ export default function AdminOverviewPage() {
 
   return (
     <main className="wrap" style={{ padding: "var(--s-6) 0 var(--s-9)" }}>
-      {/* Unauthenticated-yet banner */}
-      <div
-        role="alert"
-        style={{
-          padding: "var(--s-4)",
-          background: "var(--accent-soft)",
-          border: "1px solid var(--accent)",
-          borderRadius: "var(--r-2)",
-          color: "var(--accent-2)",
-          fontSize: 13,
-          display: "flex",
-          gap: "var(--s-3)",
-          alignItems: "flex-start",
-        }}
-      >
-        <strong style={{ flexShrink: 0 }}>Wireframe.</strong>
-        <span>
-          This route is <em>not yet authenticated</em>. NextAuth email allowlist lands in Week 2 (PROJECT_PLAN
-          Workstream F). Don&apos;t link to <code>/admin</code> from anywhere public until then.
-        </span>
-      </div>
-
-      <h1 className="t-h2" style={{ marginTop: "var(--s-6)", marginBottom: 0 }}>
+      <h1 className="t-h2" style={{ marginTop: 0, marginBottom: 0 }}>
         Overview
       </h1>
 
