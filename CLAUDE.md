@@ -114,36 +114,57 @@ Current layout (refined Week 1; refine further as the codebase grows):
 app/
 ├── (public)/                 ← everything with marketing chrome — opts IN to Topbar + Footer
 │   ├── layout.tsx            ← Topbar + Footer
-│   ├── page.tsx              ← temporary type specimen (replace with Patient Landing)
+│   ├── page.tsx              ← Patient Landing (hi-fi, data-driven)
 │   ├── for-clinics/          ← Clinic Landing (wireframe)
-│   └── clinic/onboarding/    ← 6-step clinic onboarding (wireframe, localStorage resume)
-├── admin/                    ← /admin — own minimal chrome; NOT wrapped by Topbar/Footer
-│   ├── layout.tsx            ← admin header
-│   ├── page.tsx              ← read-only tables + action buttons
-│   └── actions.tsx           ← client component, inert console stubs
+│   ├── clinic/onboarding/    ← 6-step clinic onboarding (wireframe, localStorage resume)
+│   ├── search/               ← /search results list (specialty + ZIP filter)
+│   ├── doctors/[slug]/       ← Doctor profile (hi-fi, real data)
+│   └── onboarding/           ← 7-step patient onboarding with CO geofence at step 2
+├── (auth)/                   ← sign-in surface, minimal chrome
+│   ├── layout.tsx
+│   └── sign-in/              ← /sign-in (magic-link) + /sign-in/check
+├── admin/                    ← /admin — gated by middleware.ts, own minimal chrome
+├── clinic/dashboard/         ← /clinic/dashboard/[slug]/* — clinic self-serve editing
+│   ├── layout.tsx            ← admin-style header
+│   ├── page.tsx              ← clinic picker (0/1/N clinics)
+│   └── [clinicSlug]/         ← per-clinic profile / pricing / availability editors
+├── api/auth/[...nextauth]/   ← Auth.js v5 route handler
 ├── layout.tsx                ← root: <html>, <body>, fonts only
 └── globals.css               ← imports tokens.css, then Tailwind layers
 
 src/
-├── components/
-│   ├── ui/                   ← Logo, Topbar, Footer (shared primitives)
-│   └── feature/              ← (future) page-specific composite components
+├── components/ui/            ← Logo, Topbar, Footer
 ├── lib/
-│   ├── admin/seed.ts         ← Beta wireframe seed data; shapes mirror db/schema.sql
-│   ├── db/                   ← (future) per-schema DB access — core / contact / med
-│   ├── billing/              ← (future) Stripe abstraction — only thing that touches contact from billing
-│   ├── email/                ← (future) Postmark abstraction — only thing that touches contact from email
-│   └── matching/             ← (future) onboarding match logic; bridges med → core short-lived
-└── styles/
-    └── tokens.css            ← ported from design handoff; source of truth for visual tokens
+│   ├── admin/seed.ts         ← /admin wireframe seed (will be replaced by DB reads)
+│   ├── auth.ts               ← full NextAuth config (Node, DrizzleAdapter + EmailProvider)
+│   ├── auth.config.ts        ← edge-safe subset for middleware.ts
+│   ├── clinic-auth.ts        ← requireClinicAccess / getEditableClinicsForCurrentUser
+│   ├── clinic-data.ts        ← thin data helpers for /clinic/dashboard
+│   ├── db/
+│   │   ├── client.ts         ← shared postgres-js sql
+│   │   ├── core.ts           ← drizzle client scoped to core
+│   │   ├── contact.ts        ← drizzle client scoped to contact — billing/email ONLY
+│   │   ├── med.ts            ← drizzle client scoped to med — matching service ONLY
+│   │   └── schema/           ← core.ts / contact.ts / med.ts — ADR 001 compartmentalization
+│   ├── email/
+│   │   ├── postmark.ts       ← /email API client; stubs when POSTMARK_API_KEY is missing
+│   │   ├── templates.ts      ← magicLink + 6 transactional templates
+│   │   └── transactional.ts  ← domain helpers (sendWelcome, sendWaitlistConfirm, …)
+│   ├── matching/service.ts   ← the NARROW med↔core bridge — only module that imports both
+│   ├── billing/              ← (future) Stripe abstraction — Week 4
+│   └── styles/tokens.css     ← visual source of truth
+├── middleware.ts             ← gates /admin + /clinic/dashboard via JWT session
 
 db/
-└── schema.sql                ← three-schema Postgres sketch (core / contact / med). Not a migration
-                                yet — schema changes land here first, then get replayed into Drizzle.
+├── migrate.ts                ← `npm run db:migrate` runner
+├── seed.ts                   ← `npm run db:seed` — idempotent CO Beta fixtures
+└── migrations/               ← Drizzle-generated SQL
 
-docs/
-└── adr/
-    └── 001-pii-compartmentalization.md  ← the load-bearing privacy design
+docs/adr/
+└── 001-pii-compartmentalization.md
+
+tests/visual/                 ← Playwright visual regression (hero.spec.ts)
+playwright.config.ts
 ```
 
 ### Route groups
@@ -155,6 +176,35 @@ docs/
 ### Topbar mode inference
 
 `Topbar.tsx` is a client component. It calls `usePathname()` and auto-selects the clinic-side nav set when the pathname is `/for-clinics` or starts with `/clinic/`. The `mode` prop still overrides the inference when needed.
+
+### Auth & session strategy
+
+NextAuth (Auth.js v5 beta) with a custom magic-link email provider that dispatches through the Postmark abstraction (stubs to stdout when the API key is missing). **Session strategy is JWT** so middleware can gate routes in the edge runtime without a DB hit — the `sessions` table exists in `core` but is currently unused. Flipping to database sessions later is a one-line change.
+
+Edge-safe split: `src/lib/auth.config.ts` is imported by both `auth.ts` (Node) and `middleware.ts` (edge). `DrizzleAdapter` + `postgres-js` live only in `auth.ts`.
+
+Authorization:
+- `/admin/*` — email must be in `ADMIN_EMAILS` env var (`isAdminEmail()` helper).
+- `/clinic/dashboard/:slug/*` — user must have a `core.clinic_users` row for that slug (`requireClinicAccess()` throws → page `notFound()`).
+- Everything else is public.
+
+### PII compartmentalization in practice
+
+Per ADR 001, app code imports ONE of `src/lib/db/{core,contact,med}` depending on concern. The single-connection Beta share is enforced at the module boundary + code review; post-Beta we swap in role-scoped connection strings per module with no call-site changes.
+
+**Exceptions** (the only modules that touch more than one schema):
+- `src/lib/matching/service.ts` — reads from `med` + writes to `core` for match results. The `intake_id` ↔ `subscriber_token` link lives ONLY in the request scope.
+- `app/(public)/onboarding/actions.ts` `createSubscriptionAction` — writes `core.subscriptions` + `contact.subscribers` in the same action, using a freshly-generated token as the only link.
+
+If any other module starts importing both clients, stop and check whether it should.
+
+### Homepage degraded rendering
+
+`app/(public)/page.tsx` wraps every DB read in a `safe(fn, fallback)` helper. If Supabase is unreachable, the hero still renders (with empty cards and zero counts) rather than 500-ing the marketing page. Also used by the Playwright visual regression test — runs without a live DB.
+
+### Visual regression
+
+`npm run test:visual` snapshots the `[data-testid="hero"]` region on `/` against the baseline at `tests/visual/hero.spec.ts-snapshots/hero-chromium-desktop-win32.png`. Rerun with `npm run test:visual:update` only when a visual change is intentional. This is the canary for critical rule #2 (the Young Serif → Source Serif 4 italic fallback).
 
 ---
 
