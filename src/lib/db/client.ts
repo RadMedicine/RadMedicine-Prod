@@ -16,8 +16,9 @@ import postgres from "postgres";
  * module boundary keeps that swap a config change, not a rewrite.
  */
 const connectionString = process.env.DATABASE_URL;
+const isNextBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
-if (!connectionString) {
+if (!connectionString && !isNextBuildPhase) {
   throw new Error(
     "DATABASE_URL is not set. Configure .env.local with your Supabase Postgres connection string.",
   );
@@ -26,6 +27,11 @@ if (!connectionString) {
 // Supabase connection pooler needs prepared:false when using transaction mode.
 // Safe default for Beta — we're not heavily relying on server-side prepared
 // statement caching and Supabase pgBouncer in transaction mode doesn't support them.
-export const sql = postgres(connectionString, {
+//
+// Build-phase fallback (`postgres://unset`) keeps module import non-fatal when
+// the Docker builder runs `next build` without runtime secrets — any DB call
+// in a statically-rendered path still fails at query time (caught by the
+// homepage `safe()` wrapper), but the build itself doesn't crash on import.
+export const sql = postgres(connectionString ?? "postgres://unset", {
   prepare: false,
 });
