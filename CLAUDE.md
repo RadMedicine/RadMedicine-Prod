@@ -37,7 +37,7 @@ RadMedicine is a two-sided marketplace connecting patients with Direct Primary C
 - **Auth:** NextAuth (patient/clinic role discriminator + email-allowlist for `/admin`)
 - **Payments:** Stripe — Checkout + Customer Portal (RM-billed path only at Beta launch)
 - **Email:** Postmark (transactional)
-- **Hosting:** Fly.io (same pattern as Jon's other projects — Eidrion, jon-tallman-site). Node runtime, Supabase Postgres stays external. Next.js build uses `output: "standalone"` and a Dockerfile (to be added when we first deploy). **Runtime implication:** middleware + `/opengraph-image` need `export const runtime = "nodejs"` before deploy — they're currently edge-targeted. No change to Vercel-style env conventions beyond what `.env.example` already documents.
+- **Hosting:** Fly.io (same pattern as Jon's other projects — Eidrion, jon-tallman-site). Node runtime, Supabase Postgres stays external. Next.js build uses `output: "standalone"` with a Dockerfile at repo root. **Runtime note:** middleware and `/opengraph-image` both stay on **edge runtime** on Fly — `next start` runs edge routes in an embedded V8 sandbox inside the Node server, same as Vercel. Flipping `/opengraph-image` to `nodejs` actively breaks the build: `@vercel/og` trips `fileURLToPath(Invalid URL)` during the static-export prerender step. An earlier plan to flip these to `nodejs` before Fly deploy was incorrect and has been reverted. No change to Vercel-style env conventions beyond what `.env.example` already documents.
 - **Testing:** Vitest for units, Playwright for E2E + visual regression on hi-fi pages
 
 ---
