@@ -219,7 +219,7 @@ npm run dev:3001
 ## What to do if you're a fresh Claude entering this repo
 
 1. Read this file end to end.
-2. Read `../PROJECT_PLAN.md` (in the workspace folder) for current scope, phasing, and what's in/out for Beta.
+2. Read [`PROJECT_PLAN.md`](./PROJECT_PLAN.md) (top of this repo, git-tracked as of 2026-04-19) for current scope, phasing, and what's in/out for Beta.
 3. Read the design handoff README at `../design-handoffs/2026-04-19_initial-handoff/design_handoff_radmedicine/README.md`.
 4. Read [`docs/adr/001-pii-compartmentalization.md`](./docs/adr/001-pii-compartmentalization.md) — it's the most load-bearing decision in the codebase.
 5. `git log --oneline -20` to see recent activity.
@@ -229,4 +229,4 @@ npm run dev:3001
 
 ## Where business and product context lives
 
-This repo holds technical decisions only. Product strategy, Beta planning, business decisions, marketing/legal/email copy, and customer research live in the workspace folder one level up (`../PROJECT_PLAN.md` and Cowork's auto-memory). When a decision crosses the technical/business boundary, update both this `CLAUDE.md` and PROJECT_PLAN.md, and tell Cowork so the memory stays current.
+This repo holds technical decisions plus the top-level `PROJECT_PLAN.md` (moved into the repo 2026-04-19 for git-tracked recovery). Marketing/legal/email copy and customer research live in the workspace folder one level up (`../marketing/` and Cowork's `.auto-memory/`). When a decision crosses the technical/business boundary, update both this `CLAUDE.md` and `PROJECT_PLAN.md`, and tell Cowork so the memory stays current.

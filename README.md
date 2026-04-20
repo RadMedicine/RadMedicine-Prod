@@ -5,7 +5,7 @@ Two-sided marketplace for Direct Primary Care. Next.js 14 App Router, rebuilt fr
 ## Read before touching the code
 
 1. [`CLAUDE.md`](./CLAUDE.md) — critical rules, stack, design-system discipline, file/folder conventions.
-2. [`../PROJECT_PLAN.md`](../PROJECT_PLAN.md) — scope, phasing, Beta cuts, open questions, Dan's legal queue.
+2. [`./PROJECT_PLAN.md`](./PROJECT_PLAN.md) — scope, phasing, Beta cuts, open questions, Dan's legal queue (git-tracked as of 2026-04-19).
 3. [`docs/adr/001-pii-compartmentalization.md`](./docs/adr/001-pii-compartmentalization.md) — the load-bearing privacy design.
 
 ## Run locally
